@@ -1,0 +1,16 @@
+options {
+    directory "/var/cache/bind";
+    
+    # Allow queries from our private network
+    allow-query { 10.10.0.0/24; localhost; };
+    
+    # Forward legitimate requests to Cloudflare (1.1.1.1)
+    recursion yes;
+    forwarders {
+        1.1.1.1;
+        8.8.8.8;
+    };
+    
+    dnssec-validation auto;
+    listen-on-v6 { any; };
+};

@@ -1,0 +1,64 @@
+services:
+  # 1. THE BROWSER
+  browser:
+    build: ./browser
+    container_name: sandbox-browser
+    networks:
+      - sandbox_net
+    depends_on:
+      - proxy
+      - dns
+    # REMOVED "dns:" here so it can find the proxy by name
+    shm_size: '2gb'
+    environment:
+      - SE_NODE_MAX_SESSIONS=1
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+
+  # 2. THE PROXY
+  proxy:
+    build: ./proxy
+    container_name: sandbox-proxy
+    networks:
+      - sandbox_net
+      - public_net
+    volumes:
+      - shared_logs:/data
+
+  # 3. THE DNS
+  dns:
+    build: ./dns
+    container_name: sandbox-dns
+    networks:
+      sandbox_net:
+        ipv4_address: 10.10.0.5
+      public_net:
+
+  # 4. THE LOGGER
+  logger:
+    build: ./logger
+    container_name: sandbox-logger
+    networks:
+      - sandbox_net
+    volumes:
+      - shared_logs:/data
+
+  # 5. THE SCRIPTS
+  scripts:
+    build: ./scripts
+    container_name: sandbox-scripts
+    networks:
+      - sandbox_net
+    command: tail -f /dev/null
+
+networks:
+  sandbox_net:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.10.0.0/24
+  public_net:
+    driver: bridge
+
+volumes:
+  shared_logs:
